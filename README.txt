@@ -61,3 +61,8 @@ ls -sh third_party/ovmf/RELEASEX64_OVMF.fd
 cd /home/takahashi_daigo/develop/docker_space/wasabi
 docker build -t mywasabi:latest .
 docker run -it mywasabi:latest
+
+#QEMUを起動
+cargo build --target x86_64-unknown-uefi
+cp target/x86_64-unknown-uefi/debug/wasabi.efi mnt/EFI/BOOT/BOOTX64.EFI
+qemu-system-x86_64 -bios third_party/ovmf/RELEASEX64_OVMF.fd -drive format=raw,file=fat:rw:mnt -nographic
