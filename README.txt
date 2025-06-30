@@ -57,34 +57,31 @@ ls -sh third_party/ovmf/RELEASEX64_OVMF.fd
 
 
 
+
+
+
 #上記の手順をDockerファイルにしたので以下の手順で構築
 cd /home/takahashi_daigo/develop/docker_space/wasabi
 docker build -t mywasabi:latest .
 docker run -it mywasabi:latest
 
-#QEMUを起動
-cargo build --target x86_64-unknown-uefi
-cp target/x86_64-unknown-uefi/debug/wasabi.efi mnt/EFI/BOOT/BOOTX64.EFI
-qemu-system-x86_64 -bios third_party/ovmf/RELEASEX64_OVMF.fd -drive format=raw,file=fat:rw:mnt -nographic
-
-
-
-
-
-
-
 #dockerコンテナ上ではGUIを確認する方法
 ①dokcer機動
 docker run -it -p 5901:5901 mywasabi:latest bash
 
-②qemuのVNCサーバを起動
+②build
+rustup target add x86_64-unknown-uefi
+cargo build --target x86_64-unknown-uefi
+cp target/x86_64-unknown-uefi/debug/wasabi.efi mnt/EFI/BOOT/BOOTX64.EFI
+
+③qemuの仮想マシンをVNCサーバとして起動
 qemu-system-x86_64 \
   -bios third_party/ovmf/RELEASEX64_OVMF.fd \
   -drive format=raw,file=fat:rw:mnt \
   -vnc :1
 
-③別タブからポート5901の確認
+④別タブからポート5901の確認
 sudo netstat -tlnp | grep 5901
 
-④別タブから確認
+⑤別タブから確認
 vncviewer localhost:1
