@@ -3,6 +3,7 @@
 #![feature(offset_of)]
 
 use core::mem::offset_of;
+use core::cmp::min;
 use core::mem::size_of;
 use core::panic::PanicInfo;
 use core::ptr::null_mut;
@@ -116,7 +117,7 @@ fn panic(_info: &PanicInfo) -> ! {
 
 trait Bitmap {
     fn bytes_per_pixel(&self) -> i64;
-    fn pixels_pr_line(&self) -> i64;
+    fn pixels_per_line(&self) -> i64;
     fn width(&self) -> i64;
     fn height(&self) -> i64;
     fn buf_mut(&mut self) -> *mut u8;
@@ -142,7 +143,7 @@ trait Bitmap {
         0 <= px && px < min(self.width(), self.pixels_per_line())
     }
     fn is_in_y_range(&self, py: i64) -> bool {
-        0 <= py && py < self.heght()
+        0 <= py && py < self.heiht()
     }
 }
 
@@ -176,8 +177,8 @@ fn init_vram(efi_system_table: &EfiSystemTable) -> Result<VramBufferInfo> {
     let gp = locate_graphic_protocol(efi_system_table)?;
     Ok(VramBufferInfo {
         buf: gp.mode.frame_buffer_base as *mut u8,
-        width: gp.mode.info.horizontal_resolution as i64
-        height: gp.mode.info.vertical_resolution as i64
-        pixels_per_line: gp.mode.info.pixels_per_scan_line as i64
+        width: gp.mode.info.horizontal_resolution as i64,
+        height: gp.mode.info.vertical_resolution as i64,
+        pixels_per_line: gp.mode.info.pixels_per_scan_line as i64,
     })
 }
