@@ -102,8 +102,10 @@ fn locate_graphic_protocol<'a>(
 fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
     for y in 0..vram.height {
-        if let Some(pixel) = vram.pixel_at_mut(x, y) {
-            *pixel = 0x00ff00;
+        for x in 0..vram.width {
+            if let Some(pixel) = vram.pixel_at_mut(x, y) {
+                *pixel = 0x00ff00;
+            }
         }
     }
     // println!("Hello, world!");
@@ -143,7 +145,7 @@ trait Bitmap {
         0 <= px && px < min(self.width(), self.pixels_per_line())
     }
     fn is_in_y_range(&self, py: i64) -> bool {
-        0 <= py && py < self.heiht()
+        0 <= py && py < self.height()
     }
 }
 
