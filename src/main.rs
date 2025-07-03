@@ -196,7 +196,7 @@ unsafe fn unchecked_draw_point<T: Bitmap>(
     x: i64,
     y: i64,
 ) {
-    *buf.unchecked_pixel_at_mut(x, y) = coler;
+    *buf.unchecked_pixel_at_mut(x, y) = color;
 }
 
 fn draw_point<T: Bitmap>(
@@ -219,7 +219,7 @@ fn fill_rect<T: Bitmap>(
 ) -> Result<()> {
     if !buf.is_in_x_range(px)
         || !buf.is_in_y_range(py)
-        || !buf.is_in_x_range(px + x - 1)
+        || !buf.is_in_x_range(px + w - 1)
         || !buf.is_in_y_range(py + h - 1)
     {
         return Err("Out of Range");
