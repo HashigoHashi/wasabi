@@ -144,7 +144,7 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
 ";
     for (y, row) in font_a.trim().split('\n').enumerate() {
         for (x, pixel) in row.chars().enumerate() {
-            lot color = match pixel {
+            let color = match pixel {
                 '*' => 0xffffff,
                 _ => continue,
             };
