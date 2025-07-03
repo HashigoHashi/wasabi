@@ -148,7 +148,7 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
                 '*' => 0xffffff,
                 _ => continue,
             };
-            let _ = draw_point(&mut vram, color,, x as i64, y as i64);
+            let _ = draw_point(&mut vram, color, x as i64, y as i64);
         }
     }
     // println!("Hello, world!");
