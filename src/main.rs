@@ -275,9 +275,9 @@ fn draw_line<T: Bitmap>(
     {
         return Err("Out of Range");
     }
-    let dx = (x1 - x0).ads();
+    let dx = (x1 - x0).abs();
     let sx = (x1 - x0).signum();
-    let dy = (y1 - y0).ads();
+    let dy = (y1 - y0).abs();
     let sy = (y1 - y0).signum();
     if dx >= dy {
         for (rx, ry) in (0..dx).flat_map(|rx| calc_slope_point(dx, dy, rx).map(|ry| (rx, ry)))
