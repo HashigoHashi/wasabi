@@ -296,7 +296,7 @@ fn draw_line<T: Bitmap>(
     Ok(())
 }
 
-fn loopup_font(c: char) -> Option<[[char; 8]; 16]> {
+fn lookup_font(c: char) -> Option<[[char; 8]; 16]> {
     const FONT_SOURCE: &str = include_str!("./font.txt");
     if let Ok(c) = u8::try_from(c) {
         let mut fi = FONT_SOURCE.split('\n');
