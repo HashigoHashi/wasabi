@@ -127,7 +127,7 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     for (i, c) in "ABCDEF".chars().enumerate() {
         draw_font_fg(&mut vram, i as i64 * 16 + 256, i as i64 * 16, 0xffffff, c)
     }
-    draw_font_fg(&mut vram, 256, 256, 0xffffff, "Hello, world!");
+    draw_str_fg(&mut vram, 256, 256, 0xffffff, "Hello, world!");
     // println!("Hello, world!");
     loop {}
 }
