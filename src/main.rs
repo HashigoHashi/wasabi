@@ -133,7 +133,7 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     draw_str_fg(&mut vram, 256, 256, 0xffffff, "Hello, world!");
     let mut w = VramTextWriter::new(&mut vram);
     for i in 0..4 {
-        writen!(w, "i = {i}".unwrap());
+        writeln!(w, "i = {i}".unwrap());
     }
     // println!("Hello, world!");
     loop {}
@@ -358,7 +358,7 @@ impl<'a> VramTextWriter<'a> {
         Self { vram }
     }
 }
-impl fmt::Write for VramTestWriter<'_> {
+impl fmt::Write for VramTextWriter<'_> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         draw_str_fg(self.vram, 0, 0, 0xffffff, s);
         Ok(())
