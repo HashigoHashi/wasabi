@@ -297,7 +297,7 @@ fn draw_line<T: Bitmap>(
 }
 
 fn draw_font_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, c: char) {
-    if let OK(_c) = u8::try_from(c) {
+    if let Ok(_c) = u8::try_from(c) {
         let font_a = "
 ........
 ...**...
