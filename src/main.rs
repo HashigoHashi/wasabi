@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(offset_of)]
 
+use core::arch::asm;
 use core::mem::offset_of;
 use core::cmp::min;
 use core::fmt;
@@ -196,6 +197,10 @@ fn locate_graphic_protocol<'a>(
     Ok(unsafe { &*graphic_output_protocol })
 }
 
+pub fn hlt() {
+    unsafe { asm!("hlt") }
+}
+
 #[no_mangle]
 fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
@@ -239,12 +244,16 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         writeln!(w, "{e:?}").unwrap();
     }
     // println!("Hello, world!");
-    loop {}
+    loop {
+        hlt()
+    }
 }
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    loop{}
+    loop{
+        hlt()
+    }
 }
 
 trait Bitmap {
