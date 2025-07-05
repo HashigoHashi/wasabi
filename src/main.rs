@@ -248,7 +248,7 @@ fn efi_main(_image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         total_memory_pages += e.number_of_pages;
         writeln!(w, "{e:?}").unwrap();
     }
-    let total_memory_size_mid = total_memory_pages * 4096 / 1024 / 1024;
+    let total_memory_size_mib = total_memory_pages * 4096 / 1024 / 1024;
     writeln!(
         w,
         "Total: {total_memory_pages} pages = {total_memory_size_mib} MiB"
