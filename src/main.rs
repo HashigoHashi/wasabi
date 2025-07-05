@@ -143,18 +143,6 @@ impl EfiBootServicesTable {
 const _: () = assert!(offset_of!(EfiBootServicesTable, get_memory_map) == 56);
 const _: () = assert!(offset_of!(EfiBootServicesTable, locate_protocol) == 320);
 
-impl EfiBootServicesTable {
-    fn get_memory_map(&self, map: &mut MemoryMapHolder) -> EfiStatus {
-        (self.get_memory_map)(
-            &mut map.memory_map_size,
-            map.memory_map_buffer.as_mut_ptr(),
-            &mut map.map_key,
-            &mut map.descriptor_size,
-            &mut map.descriptor_version,
-        )
-    }
-}
-
 #[repr(C)]
 struct EfiSystemTable {
     _reserved0: [u64; 12],
