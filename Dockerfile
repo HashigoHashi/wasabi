@@ -8,6 +8,11 @@ RUN apt-get update && apt-get install -y \
   python3-venv python3-pip clang vim netcat-openbsd qemu-system-x86 \
   && rm -rf /var/lib/apt/lists/*
 
+# 🔽 UEFIアプリ開発・起動に必要な追加パッケージ
+RUN apt-get update && apt-get install -y \
+  ovmf mtools dosfstools \
+  && rm -rf /var/lib/apt/lists/*
+
 # Python tomliをpipでインストール
 RUN python3 -m pip install tomli
 
