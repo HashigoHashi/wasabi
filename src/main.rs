@@ -93,6 +93,7 @@ impl<'a> Iterator for MemoryMapIterator<'a> {
                     as *const EfiMemoryDescriptor)
             };
             self.ofs += self.map.descriptor_size;
+            Some(e)
         }
     }
 }
