@@ -63,7 +63,6 @@ ls -sh third_party/ovmf/RELEASEX64_OVMF.fd
 #上記の手順をDockerファイルにしたので以下の手順で構築
 cd /home/takahashi_daigo/develop/docker_space/wasabi
 docker build -t mywasabi:latest .
-docker run -it mywasabi:latest
 
 #dockerコンテナ上ではGUIを確認する方法
 ①dokcer機動
