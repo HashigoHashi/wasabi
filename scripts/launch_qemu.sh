@@ -1,5 +1,6 @@
 #!/bin/bash -e
-PROJ_ROOT="$(dirname $(dirname $(BASH_SOURCE:-$0)))"
+SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+PROJ_ROOT="$(cd "$(dirname "$(dirname "$SCRIPT_PATH")")" && pwd)"
 cd "${PROJ_ROOT}"
 
 PATH_TO_EFI="$1"
