@@ -85,7 +85,7 @@ struct MemoryMapIterator<'a> {
 impl<'a> Iterator for MemoryMapIterator<'a> {
     type Item = &'a EfiMemoryDescriptor;
     fn next(&mut self) -> Option<&'a EfiMemoryDescriptor> {
-        if self.ofs >= self.map.memory+_map_size {
+        if self.ofs >= self.map.memory_map_size {
             None
         } else {
             let e: &EfiMemoryDescriptor = unsafe {
@@ -122,7 +122,7 @@ struct EfiBootServicesTable {
         descriptor_size: *mut usize,
         descriptor_version: *mut u32,
     ) -> EfiStatus,
-    _reserved1: [u64, 32],
+    _reserved1: [u64; 32],
     locate_protocol: extern "win64" fn(
         protocol: *const EfiGuid,
         registration: *const EfiVoid,
