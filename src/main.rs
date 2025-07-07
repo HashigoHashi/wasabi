@@ -511,13 +511,13 @@ impl fmt::Write for VramTextWriter<'_> {
 fn exit_from_efi_boot_services(
     image_handle: EfiHandle,
     efi_system_table: &EfiSystemTable,
-    memory_map: &mut MemoryMapHandler,
+    memory_map: &mut MemoryMapHolder,
 ) {
     loop {
         let status = efi_system_table.boot_services.get_memory_map(memory_map);
         assert_eq!(status, EfiStatus::Success);
         let status = (efi_system_table.boot_services.exit_boot_services)(
-            image_hancle,
+            image_handle,
             memory_map.map_key,
         );
         if status == EfiStatus::Success {
