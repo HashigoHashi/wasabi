@@ -79,6 +79,8 @@ qemu-system-x86_64 \
   -drive format=raw,file=fat:rw:mnt \
   -vnc :1
 
+上記の②③をcargo runで実行可能
+
 ④別タブからポート5901の確認
 sudo netstat -tlnp | grep 5901
 
