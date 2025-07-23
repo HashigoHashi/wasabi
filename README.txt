@@ -65,8 +65,12 @@ cd /home/takahashi_daigo/develop/docker_space/wasabi
 docker build -t mywasabi:latest .
 
 #dockerコンテナ上ではGUIを確認する方法
-①dokcer機動
+①dokcerコマンド
+#コンテナを作成する場合
 docker run -it -p 5901:5901 mywasabi:latest bash
+#コンテナを起動する場合
+docker start <コンテナID>
+docker exec -it <コンテナID> bash
 
 ②build
 rustup target add x86_64-unknown-uefi
