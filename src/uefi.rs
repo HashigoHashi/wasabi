@@ -94,11 +94,6 @@ impl MemoryMapHolder {
         MemoryMapIterator { map: self, ofs: 0 }
     }
 }
-impl Default for MemoryMapIterator {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 pub struct MemoryMapIterator<'a> {
     map: &'a MemoryMapHolder,
