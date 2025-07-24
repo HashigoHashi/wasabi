@@ -1,3 +1,4 @@
+#![no_std]
 #![no_main]
 #![feature(offset_of)]
 
