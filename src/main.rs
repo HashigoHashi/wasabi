@@ -13,7 +13,7 @@ use core::writeln;
 use wasabi::graphics::draw_font_fg;
 use wasabi::graphics::draw_test_pattern;
 use wasabi::graphics::fill_rect;
-use wasabi::Bitmap;
+use wasabi::graphics::Bitmap;
 use wasabi::result::Result;
 
 type EfiVoid = u8;
