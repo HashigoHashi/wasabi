@@ -213,7 +213,7 @@ fn locate_graphic_protocol<'a>(
 }
 
 #[derive(Clone, Copy)]
-struct VramBufferInfo {
+pub struct VramBufferInfo {
     buf: *mut u8,
     width: i64,
     height: i64,
