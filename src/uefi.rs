@@ -7,7 +7,7 @@ use core::mem::size_of;
 use core::ptr::null_mut;
 
 type EfiVoid = u8;
-type EfiHandle = u64;
+pub type EfiHandle = u64;
 
 #[repr(C)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
