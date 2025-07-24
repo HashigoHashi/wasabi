@@ -66,7 +66,7 @@ impl EfiMemoryDescriptor {
     pub fn memory_type(&self) -> EfiMemoryType {
         self.memory_type
     }
-    pub fn number_of_pages($self) -> u64 {
+    pub fn number_of_pages(&self) -> u64 {
         self.number_of_pages
     }
 }
