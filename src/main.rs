@@ -1,3 +1,4 @@
+#![no_main]
 #![feature(offset_of)]
 
 use core::arch::asm;
