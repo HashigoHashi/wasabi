@@ -12,3 +12,14 @@ qemu-system-x86_64 \
   -bios third_party/ovmf/RELEASEX64_OVMF.fd \
   -drive format=raw,file=fat:rw:mnt \
   -vnc :1
+  RETCODE=$?
+  set -e
+if [ $RETCODE -eq 0 ]; then
+  exit 0
+elif [ $RETCODE -eq 3 ]; then
+  printf "\nPASS\n"
+  exit 0
+else
+  printf "\nFAIL: QEMU returned $RETCODE\n"
+  exit 1
+fi
