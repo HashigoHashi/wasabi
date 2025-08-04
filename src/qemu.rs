@@ -8,7 +8,7 @@ pub enum QemuExitCode {
     Fail = 0x2, // QEMU will exit with status 5
 }
 
-pub fn exit_qemu(exit_code: QemuExitCode) {
+pub fn exit_qemu(exit_code: QemuExitCode) -> ! {
     // https://github.com/qemu/qemu/blob/master/hw/misc/debugexit.c
     write_io_port_u8(0xf4, exit_code as u8);
     loop {
