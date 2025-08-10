@@ -12,8 +12,8 @@ qemu-system-x86_64 \
   -bios third_party/ovmf/RELEASEX64_OVMF.fd \
   -drive format=raw,file=fat:rw:mnt \
   -device isa-debug-exit,iobase=0xf4,iosize=0x01 #docker上出来どうする場合vncを使用するのでここを-vnc :1に変更する
-  RETCODE=$?
-  set -e
+RETCODE=$?
+set -e
 if [ $RETCODE -eq 0 ]; then
   exit 0
 elif [ $RETCODE -eq 3 ]; then
