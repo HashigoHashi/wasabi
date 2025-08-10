@@ -1,3 +1,28 @@
+#ubuntu上で起動
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #dokerでubuntuを起動
 docker run -it --rm ubuntu:22.04 bash
 
