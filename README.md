@@ -1,4 +1,4 @@
-#ubuntu上で起動
+# ubuntu上で起動
 
 
 
@@ -23,7 +23,7 @@
 
 
 
-#dokerでubuntuを起動
+# dokerで起動
 docker run -it --rm ubuntu:22.04 bash
 
 #ビルドツール・依存パッケージのインストール
