@@ -71,7 +71,8 @@ impl EfiMemoryDescriptor {
     }
 }
 
-const MEMORY_MAP_BUFFER_SIZE: usize = 0x80000;
+// スタックオーバーフロー対策のため、メモリマップのサイズを64KB固定
+const MEMORY_MAP_BUFFER_SIZE: usize = 0x10000;
 
 pub struct MemoryMapHolder {
     memory_map_buffer: [u8; MEMORY_MAP_BUFFER_SIZE],
