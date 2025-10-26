@@ -69,6 +69,9 @@ impl EfiMemoryDescriptor {
     pub fn number_of_pages(&self) -> u64 {
         self.number_of_pages
     }
+    pub fn physical_start(&self) -> u64 {
+        self.physical_start
+    }
 }
 
 // スタックオーバーフロー対策のため、メモリマップのサイズを64KB固定
