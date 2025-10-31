@@ -52,3 +52,8 @@ impl fmt::Write for SerialPort {
         Ok(())
     }
 }
+impl Default for SerialPort {
+    fn default() -> Self {
+        Self::new_for_com1()
+    }
+}
