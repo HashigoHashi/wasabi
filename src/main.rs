@@ -54,6 +54,9 @@ fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         "Total: {total_memory_pages} pages = {total_memory_size_mib} MiB"
     ).unwrap();
     writeln!(w, "Hello, Non-UEFI world!").unwrap();
+    let cr3 = wasabi::x86::read_cr3();
+    println!("cr3 = {cr3:#p}");
+    let t = Some(unsafe { &*cr3});
     loop {
         hlt()
     }
