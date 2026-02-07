@@ -57,6 +57,13 @@ fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     let cr3 = wasabi::x86::read_cr3();
     println!("cr3 = {cr3:#p}");
     let t = Some(unsafe { &*cr3});
+    println!("{t:?}");
+    let t = t.and_then(|t| t.next_level(0));
+    println!("{t:?}");
+    let t = t.and_then(|t| t.next_level(0));
+    println!("{t:?}");
+    let t = t.and_then(|t| t.next_level(0));    
+    println!("{t:?}");
     loop {
         hlt()
     }
