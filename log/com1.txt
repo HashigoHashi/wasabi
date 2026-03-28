@@ -7,9 +7,9 @@ image_handle: 0x00000000BEC4E498
 
 efi_system_table: 0x00000000bf9ee018
 
-[INFO]  src/main.rs:32 : info
-[WARN]  src/main.rs:33 : warn
-[ERROR] src/main.rs:34 : error
+[INFO]  src/main.rs:34 : info
+[WARN]  src/main.rs:35 : warn
+[ERROR] src/main.rs:36 : error
 00000000: 49 42 49 20 53 59 53 54 46 00 02 00 78 00 00 00 |IBI SYSTF...x...|
 00000010: f8 eb 8b d5 00 00 00 00 18 d8 92 bf 00 00 00 00 |................|
 00000020: 00 00 01 00 00 00 00 00 18 ce d8 be 00 00 00 00 |................|
@@ -605,3 +605,28 @@ Some(L2Table @ 0x00000000bfc03000 {
 }
 )
 None
+[INFO]  src/x86.rs:674: TSS64 created @ 0x13FF7FE80
+[INFO]  src/x86.rs:749: Loading GDT @ 0x000000013FF7FE20
+[INFO]  src/x86.rs:756: Loading TSS ( selector = 0x18 )
+[INFO]  src/x86.rs:621: Loading IDT: IdtrParameters { limit: 4096, base: 0x13ff7ee00 }
+[INFO]  src/main.rs:71 : Exception initialized!
+[ERROR] src/x86.rs:445: Interrupt Info: 
+        {
+            rip: 0x00000000BE32DEA5, CS: 0x0008,
+            rsp: 0x00000000BFEA8A80, SS: 0x0010,
+            rbp: 0x00000000BFEA8A80,
+
+            rflags:     0x0000000000000002,
+            error_code: 0x0000000000000000,
+
+            rax: 000000000000000000, rcs: 0000000000BFEA8700,
+            rdx: 0000000000BE34D5C8, rbs: 0000000000BE4F3348,
+            rsi: 0000000000BE632018, rdsi: 0000000000BE632018,
+            r8: 000000000000000001, r9: 000000000000000004,
+            r10: 0000000000BE35D318, r11: 000000000000000001,
+            r12: 000000000000000000, r13: 000000000000000000,
+            r14: 0000000000BE4F3298, r15: 000000000000000005,
+        }
+[ERROR] src/x86.rs:446: Exception 0x03: 
+[ERROR] src/x86.rs:449: Breakpoint
+[ERROR] src/main.rs:80 : PANIC: PanicInfo { payload: Any { .. }, message: Some(fatal exception), location: Location { file: "src/x86.rs", line: 498, col: 5 }, can_unwind: true, force_no_backtrace: false }
