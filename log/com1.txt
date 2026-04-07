@@ -9,9 +9,9 @@ efi_system_table: 0x00000000bf9ee018
 
 image_base: 0x00000000C0000200
 image_size: 0x0000000000000000
-[INFO]  src/main.rs:39 : info
-[WARN]  src/main.rs:40 : warn
-[ERROR] src/main.rs:41 : error
+[INFO]  src/main.rs:42 : info
+[WARN]  src/main.rs:43 : warn
+[ERROR] src/main.rs:44 : error
 00000000: 49 42 49 20 53 59 53 54 46 00 02 00 78 00 00 00 |IBI SYSTF...x...|
 00000010: f8 eb 8b d5 00 00 00 00 18 d8 92 bf 00 00 00 00 |................|
 00000020: 00 00 01 00 00 00 00 00 18 ce d8 be 00 00 00 00 |................|
@@ -611,25 +611,27 @@ None
 [INFO]  src/x86.rs:824: Loading GDT @ 0x000000013FF7FE20
 [INFO]  src/x86.rs:831: Loading TSS ( selector = 0x18 )
 [INFO]  src/x86.rs:696: Loading IDT: IdtrParameters { limit: 4096, base: 0x13ff7ee00 }
-[INFO]  src/main.rs:76 : Exception initialized!
+[INFO]  src/main.rs:79 : Exception initialized!
 [ERROR] src/x86.rs:519: Interrupt Info: 
         {
-            rip: 0x00000000BE325165, CS: 0x0008,
-            rsp: 0x00000000BFEA8540, SS: 0x0010,
-            rbp: 0x00000000BFEA8540,
+            rip: 0x00000000BE325695, CS: 0x0008,
+            rsp: 0x00000000BFEA81A0, SS: 0x0010,
+            rbp: 0x00000000BFEA81A0,
 
-            rflags:     0x0000000000000002,
+            rflags:     0x0000000000000006,
             error_code: 0x0000000000000000,
 
-            rax: 000000000000000000, rcs: 0000000000BFEA8200,
-            rdx: 0000000000BE347718, rbs: 0000000000BE4F3348,
+            rax: 000000000000000000, rcs: 0000000000BFEA7E00,
+            rdx: 0000000000BE3477D8, rbs: 0000000000BE4F3348,
             rsi: 0000000000BE632018, rdsi: 0000000000BE632018,
             r8: 000000000000000001, r9: 000000000000000004,
-            r10: 0000000000BE357CE8, r11: 000000000000000001,
+            r10: 0000000000BE357DA8, r11: 000000000000000001,
             r12: 000000000000000000, r13: 000000000000000000,
             r14: 0000000000BE4F3298, r15: 000000000000000005,
         }
 [ERROR] src/x86.rs:520: Exception 0x03: 
 [ERROR] src/x86.rs:523: Breakpoint
-[INFO]  src/main.rs:78 : Execution continued.
-[INFO]  src/main.rs:80 : Now we are using our own page tables!
+[INFO]  src/main.rs:81 : Execution continued.
+[INFO]  src/main.rs:83 : Now we are using our own page tables!
+[INFO]  src/main.rs:85 : Reading from memory address 0...
+[INFO]  src/main.rs:90 : value_at_zero = 0
