@@ -41,6 +41,20 @@ pub enum EfiStatus {
 #[repr(i64)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
+/*
+ * 列挙型って理解しきれていない。
+ * 中のメンバはすべてEfiMemoryType型としてあつかえる。
+ * let t = EfiMemoryType::CONVENTIONAL_MEMORY;
+ * このときtの型はEfiMemoryTypeであり、CONVENTIONAL_MEMORY型ではない。
+ * enumはクラスのようなものではなく、シグナルのイメージ。
+ * UEFIの仕様で
+ * RESERVED               = 0
+ * LOADER_CODE            = 1
+ * LOADER_DATA            = 2
+ * BOOT_SERVICES_CODE     = 3
+ * ...
+ * と決まっている。
+ */
 pub enum EfiMemoryType {
     RESERVED = 0,
     LOADER_CODE,
@@ -133,13 +147,30 @@ impl<'a> Iterator for MemoryMapIterator<'a> {
 #[repr(C)]
 pub struct EfiBootServicesTable {
     _reserved0: [u64; 7],
+    /*
+     * _変数名ってなに？？なんで要素の数は7なの？？
+     * _は「使われない変数」という意味。
+     * UEFIがメモリ上に作成したEFI_BOOT_SERVICES構造体をRustでEfiBootServicesTableとして解釈するときに、
+     * 先頭のu64×7個分の領域は今回はまとめてつかわないよ、ということ。
+     */
     get_memory_map: extern "win64" fn(
         memory_map_size: *mut usize,
+        /*
+         * *ってなに？？ポインタ？？可変な参照という意味でいいのかな？？
+         * *mutはCのポインタと同じように捉えて良い。
+         * Rustでは&mut usizeという参照もあるがこれもおなじ参照である。しかしこちらはRustの安全なルールに従った参照である。
+         */
         memory_map: *mut u8,
         map_key: *mut usize,
         descriptor_size: *mut usize,
         descriptor_version: *mut u32,
     ) -> EfiStatus,
+    /*
+     * これなに？？関数の定義？？
+     * これは関数ポインタget_memory_mapの宣言。
+     * Rustでは関数ポインタはlet f: fn(i32, i32) -> i32;のようにする。
+     * extern "win64"は「この関数はWindows x64の呼び出し規約で呼び出す」という意味のお決まり文句。
+     */
     _reserved2: [u64; 11],
     handle_protocol: extern "win64" fn(
         handle: EfiHandle,
@@ -157,9 +188,24 @@ pub struct EfiBootServicesTable {
         interface: *mut *mut EfiVoid,
     ) -> EfiStatus,
 }
+/*
+ * get_memory_map関数はEFIがメモリ上に用意してくれるAPIなのになんでこれを定義しているの？？オーバーライド？？
+ * オーバライドではなく、関数ポインタが指す関数を呼び出しやすいようにしている。引数をmapだけですむようにした。
+ * このメソッドが存在しなければ
+ * let services_table: EfiBootServicesTable;
+ * services_table.get_memory_map(引数1, 引数2, ...);
+ * とすると関数ポインタが指す関数を呼び出すことができるが、引数部分がかなり長くなってしまい呼び出しづらい。
+ * ちなみに関数ポインタであることをわかりやすく書くなら、(services_tables.get_memory_map)(引数1, 引数2, ...)とすべき。
+ * このメソッドを用意することで
+ * (services_table.get_memory_map)に引数を渡す部分をラップできている。
+ */
 impl EfiBootServicesTable {
     pub fn get_memory_map(&self, map: &mut MemoryMapHolder) -> EfiStatus {
         (self.get_memory_map)(
+            /*
+             * ん？？何この書き方？？
+             * (関数ポインタ)(引数)の呼び出しパターン。
+             */
             &mut map.memory_map_size,
             map.memory_map_buffer.as_mut_ptr(),
             &mut map.map_key,
@@ -212,20 +258,112 @@ struct EfiGraphicsOutputProtocol<'a> {
     _reserved: [u64; 3],
     pub mode: &'a EfiGraphicsOutputProtocolMode<'a>,
 }
+/*
+ * 'aってやつはライフタイムパラメータってやつだよね。これって何がしたいの？？
+ * 普通は引数の中のデータの参照を返すから、引数と同じライフタイムを返す感じじゃないの？？
+ * fn foo<'a>(x: &'a T)->&'a T{...}
+ * これは引数のライフタイムに依存せず、この関数内でライフタイムが決まるってものだね。
+ * あれ、でもこの関数内ならこの関数終了時でライフタイムは終了しないか？？
+ * そのとおりで
+ * fn foo<'a>() -> &'a i32 {
+ *   let x =10;
+ *   &x
+ *  }
+ * は成り立たない。
+ * 今回の関数においては関数内でUEFIが用意しているデータに対するポインタをもらってきているので関数終了時にデータは消えない。
+ */
 fn locate_graphic_protocol<'a>(
     efi_system_table: &EfiSystemTable,
 ) -> Result<&'a EfiGraphicsOutputProtocol<'a>> {
-    let mut graphic_output_protocol = null_mut::<EfiGraphicsOutputProtocol>();
+    /*
+     * &'a EfiGraphicsOutputProtocol<'a> なんで'aがふたつもあるの？？
+     * 後半の<'a>に関してはこのEfiGraphicsOutputProtocolという構造体がライフタイムパラメータを必要とする型だからである。
+     * 構造体のメンバに絶対に同じスコープにないといけないメンバがあってそれと同じライフタイムにしている型という感じ。
+     * &'aに関しては返す参照のライフタイムも'aであることを表している。
+     */
+    let mut graphic_output_protocol: *mut EfiGraphicsOutputProtocol<'_> = null_mut::<EfiGraphicsOutputProtocol>();
+    /*
+     * *mut 型名ってなに？？&mut 型名ならしっているけど、
+     * 生ポインタ
+     * *mut T
+     * 安全保障なし。unsafe必要。Cと同じ。
+     * 
+     * 参照
+     * &mut T
+     * 安全保障あり。unsafe不要。Rust独自。
+     * <'_>ってなに？？
+     * 「EfiGraphicsOutputProtocol はライフタイムパラメータが必要な型だから、とりあえず適当に推論してください。」といういみ。
+     */
     let status = (efi_system_table.boot_services.locate_protocol)(
         &EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID,
         null_mut::<EfiVoid>(),
+        /*
+         * null_mut::<型名>()ってなに？？
+         * Cの
+         * int *p;
+         * のような宣言だとpはポインタで
+         * 中身は
+         * p
+          ┌────────────┐
+          │ ????????   │ ← ゴミ値（未初期化）
+          └────────────┘
+         * のような感じである。一方でRustの
+         * let p = null_mut::<int>();
+         * の初期化の場合は
+         * p
+          ┌────────────┐
+          │ 0x000000   │ ← ゴミ値（未初期化）
+          └────────────┘
+         * となる。こうすることでUEFIがNULLだった場所に有効なアドレスを書き込んでくれる。
+         * ちなみにRustでは未初期化変数をつかうことをコンパイラが禁止している
+         * let p: *mut i32;
+         * prinln!("{:?}", p); // コンパイルエラー
+         */
         &mut graphic_output_protocol as *mut *mut EfiGraphicsOutputProtocol
             as *mut *mut EfiVoid,
+        /*
+         * これはなに？？
+         * 分解して考えましょう
+         * まずgraphic_output_protocolは*mut EfiGraphicsOutputProtocolです。
+         * これに&mut *mut EfiGraphicsOutputProtocolとすることで
+         * 「生ポインタへの可変な参照」をとることができます。(生ポインタの中身をNULLから書き換えるためでしょう...)
+         * これをポインタのポインタ(参照の参照)という。
+         * つぎにasはキャストです。「変数 as 型名」で任意の型名にキャストできます。
+         * この場合
+         * 「&mut *mut EfiGraphicsOutputProtocol　→ *mut *mut EfiGraphicsOutputProtocol」にキャストしています。
+         * (おそらくCにRustの可変参照という概念がないからそうしているのでしょう...)
+         * 最後のas *mut *mut EfiVoidの部分については型名がかわってしまっているけれどどういうこと？？
+         * EfiVoidはu8のエイリアスです。ので実際には
+         * *mut *mut u8にしようとしている。
+         * *mut (EfiGraphicsOutputProtocolへのポインタ)を*mut (u8へのポインタ)としている。
+         * Rust側ではgraphic_output_protocolはデリファレンスするとしっかりEfiGraphicsOutputProtocolとして扱える。
+         * ただ渡されたCは「デリファレンスすると最終的にはu8があるんだよなー」ってならない？？
+         * 実際にはEfiGraphicsOutputProtocolに相当するデータがあるのにこの場合はエラーにならないの？？
+         * エラーにならない。渡された側はポインタのポインタを一回デリファレンスしてスタックに保持されているアドレスを書き換えることしか関心がない。
+         */
     );
     if status != EfiStatus::Success {
         return Err("Failed to locate graphics output protocol");
     }
     Ok(unsafe { &*graphic_output_protocol })
+    /*
+     * なにこれ？？unsafe？？&*変数名も何？？
+     * &*は生ポインタからRustの参照へ変換している。
+       *mut EfiGraphicsOutputProtocol
+      （生ポインタ）
+        │
+        │ *(デリファレンス)
+        ▼
+       EfiGraphicsOutputProtocol
+      （ポインタが指す実体）
+        │
+        │ &
+        ▼
+      &EfiGraphicsOutputProtocol
+     （Rustの安全な参照）
+     * なるほど、ではなぜunsafeにしている？？もうすでに「生ポインタ」ではなく「参照」になっているじゃないか
+     * unsafeは生ポインタを扱う処理を囲むものだから。この場合「生ポインタ」を「参照」に変換する処理が危険だから囲んでいる。
+     */
 }
 
 pub struct EfiLoadedImageProtocol {

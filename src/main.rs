@@ -1,5 +1,13 @@
 #![no_std]
+/*
+ * stdクレートはRustの標準ライブラリ的なものであり、一般的にOSと協調して動作をするのでstdクレートを使えないようにする。
+ * 一方でcoreクレートは自分以外のソフトウェアに依存しないのでcoreクレートを使うようにしていく。
+ */
 #![no_main]
+/* 
+ * 1.「mainを呼び出す仕組み」は通常はstdに依存しているのでmain関数をつかわない
+ * 2. UEFIアプリケーションとして起動するためエントリーポイントをefi_mainにする
+ */
 #![feature(offset_of)]
 
 use core::arch::asm;
@@ -32,9 +40,18 @@ use wasabi::x86::trigger_debug_interrupt;
 use wasabi::x86::PageAttr;
 
 #[no_mangle]
+/*
+ * UEFIファームウェアはefi_mainという関数を探して呼び出す
+ * no_mangleをつける理由はコンパイラ後に関数名を変えずにそのまま実行ファイルに残すため
+ * UEFIがefi_mainというエントリーポイントをみつけられる
+ */
 fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     println!("Booting WasabiOS...\n");
     println!("image_handle: {:#018X}\n", image_handle);
+    /*
+     * image_handleって何を受け取っているの？？型自体はuint64のエイリアスだけど
+     * UEFIファームウェアがefi_mainを呼ぶときに渡してくれる
+     */
     println!("efi_system_table: {:#p}\n", efi_system_table);
     let loaded_image_protocol = locate_loaded_image_protocol(image_handle, efi_system_table).expect("Failed to get LoadedImageProtocol");
     println!("image_base: {:#018X}", loaded_image_protocol.image_base);
