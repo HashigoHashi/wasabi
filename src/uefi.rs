@@ -63,7 +63,7 @@ pub enum EfiMemoryType {
     BOOT_SERVICES_DATA,
     RUNTIME_SERVICES_CODE,
     RUNTIME_SERVICES_DATA,
-    CONVENTIONAL_MEMORY,
+    CONVENTIONAL_MEMORY,         // OSが自由に使える通常のメモリ
     UNUSABLE_MEMORY,
     ACPI_RECLAIM_MEMORY,
     ACPI_MEMORY_NVS,
@@ -75,13 +75,30 @@ pub enum EfiMemoryType {
 
 #[repr(C)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+/*
+ * 「ひとつの連続したメモリ領域の情報」
+ *  メモリ区画
+ */
 pub struct EfiMemoryDescriptor {
-    memory_type: EfiMemoryType,
-    physical_start: u64,
+    memory_type: EfiMemoryType, // メモリの用途
+    physical_start: u64, //アドレスの開始位置
     virtual_start: u64,
-    number_of_pages: u64,
+    number_of_pages: u64, //ページ数
     attribute: u64,
 }
+/*
+ * Type           = CONVENTIONAL_MEMORY
+ * physical_start = 0x00100000
+ * number_of_pages = 256
+ * だった場合
+ * 0x00100000
+ * │
+ * ├───────────────┐
+ * │      256ページ分             │
+ * └───────────────┘
+ * という１つのメモリ領域を表す。
+ * UEFIでは１ページ4096バイト（4KB）なので256 × 4096 = 1,048,576バイト（1MB）
+ */
 impl EfiMemoryDescriptor {
     pub fn memory_type(&self) -> EfiMemoryType {
         self.memory_type
@@ -97,8 +114,24 @@ impl EfiMemoryDescriptor {
 // スタックオーバーフロー対策のため、メモリマップのサイズを64KB固定
 const MEMORY_MAP_BUFFER_SIZE: usize = 0x10000;
 
+/*
+ * 
+ */
 pub struct MemoryMapHolder {
-    memory_map_buffer: [u8; MEMORY_MAP_BUFFER_SIZE],
+    memory_map_buffer: [u8; MEMORY_MAP_BUFFER_SIZE], //メモリマップ本体。
+    /*
+     * ん？？このu8の羅列に物理アドレスが羅列して入っているって感じ？？それの何が意味あるの？？
+     * u8の配列には以下のようなデータがはいっている。
+     * memory_map_buffer[0-39]：0x00000000 ～ 0x0009FFFF  CONVENTIONAL_MEMORY（使用可能）
+     * memory_map_buffer[40-79]：0x000A0000 ～ 0x000FFFFF  RESERVED
+     * memory_map_buffer[80-119]：0x00100000 ～ 0x03FFFFFF  BOOT_SERVICES_DATA
+     * memory_map_buffer[120-159]：0x04000000 ～ 0x1FFFFFFF  CONVENTIONAL_MEMORY（使用可能）
+     * memory_map_buffer[160-199]：0x20000000 ～ 0x20FFFFFF  ACPI_RECLAIM_MEMORY
+     * これはEfiMemoryDescriptorの内容をそのまま広げたものである。
+     * ではなぜ[EfiMemoryDescriptor; MEMORY_MAP_BUFFER_SIZE]にしないの？？
+     * なんこになるかわからないから。
+...
+     */
     memory_map_size: usize,
     map_key: usize,
     descriptor_size: usize,
@@ -170,6 +203,10 @@ pub struct EfiBootServicesTable {
      * これは関数ポインタget_memory_mapの宣言。
      * Rustでは関数ポインタはlet f: fn(i32, i32) -> i32;のようにする。
      * extern "win64"は「この関数はWindows x64の呼び出し規約で呼び出す」という意味のお決まり文句。
+     */
+    /*
+     * なんでEFIが用意した関数ポインタなのに返り値の型をEfiStatusっていうRustの構造体にできているの？？
+     * これも#[repr(C)]での変換がうまくいく
      */
     _reserved2: [u64; 11],
     handle_protocol: extern "win64" fn(
@@ -483,6 +520,9 @@ impl fmt::Write for VramTextWriter<'_> {
     }
 }
 
+/*
+ * 
+ */
 pub fn exit_from_efi_boot_services(
     image_handle: EfiHandle,
     efi_system_table: &EfiSystemTable,
