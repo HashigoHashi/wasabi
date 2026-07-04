@@ -207,6 +207,12 @@ impl EfiBootServicesTable {
              * (関数ポインタ)(引数)の呼び出しパターン。
              */
             &mut map.memory_map_size,
+            /*
+             * 関数の定義では引数は*mut 型名だったのに&mutでいいの？？Cのポインタを渡すところにRustにポインタを渡せるてこと？？
+             * はい、できます。&mut T → *mut Tはできます。が逆はできません。
+             * これはRustがCよりも安全な保証を持ったポインタだからできることです。
+             * RustでOsをかける大きな理由の１つ。
+             */
             map.memory_map_buffer.as_mut_ptr(),
             &mut map.map_key,
             &mut map.descriptor_size,
@@ -218,12 +224,36 @@ const _: () = assert!(offset_of!(EfiBootServicesTable, get_memory_map) == 56);
 const _: () = assert!(offset_of!(EfiBootServicesTable, exit_boot_services) == 232);
 const _: () = assert!(offset_of!(EfiBootServicesTable, locate_protocol) == 320);
 
+/*
+ * UEFIはCで作った構造体なのに、なんでRustの構造体として受け取れるの？
+ * #[repr(C)]をつければCの構造体とおなじメモリレイアウトになるのでCをRustで解釈できる。
+ */
 #[repr(C)]
 pub struct EfiSystemTable {
     _reserved0: [u64; 12],
     pub boot_services: &'static EfiBootServicesTable,
+    /*
+     * &'staticって何？staticってライフタイムはどのくらいの期限を示している？？
+     * プログラムの開始から終了まで生きているライフタイム
+     * static x: i32 = 10;
+     * なら
+     * &xの型は&'static i32
+     * つまりこの構造体をつくるにはstatci boot_services: EfiBootServicesTable = ...;がどこかでつくられないとだめだよね？？
+     * 普通のプログラムならその考えであっている。ただこれはUEFIがつくっており、その参照をもらうだけでいい。
+     */
 }
 const _: () = assert!(offset_of!(EfiSystemTable, boot_services) == 96);
+/*
+ * なにこれ？？
+ * offset_of!(EfiSystemTable, boot_services)はEfiSystemTableの構造体の先頭から何バイト目にboot_servicesがあるか
+ * u64が12個前にあるので96バイトboot_servicesの前にある。
+ * assert!(96 == 96);となる。
+ * 条件が偽ならコンパイル時にエラーになって止まってくれる安全装置。
+ * Rustには「式」「文」「アイテム」があり、ファイルトップレベルにはアイテムしか書けない。
+ * 基本的に「;」で終わるものは「文」という認識でよいが、「アイテム」であることもあるので注意が必要。
+ * なのでassert!(...)という式はかけない。
+ * const _: () = ...;は「名前のない定数をつくる」という「アイテム」
+ */
 impl EfiSystemTable {
     pub fn boot_services(&self) -> &EfiBootServicesTable {
         self.boot_services
