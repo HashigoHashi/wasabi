@@ -33,10 +33,17 @@ const EFI_LOADED_IMAGE_PROTOCOL_GUID: EfiGuid = EfiGuid {
 };
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[must_use]
-#[repr(u64)]
+#[repr(u64)] // この型はu64と全く同じレイアウト・サイズだ
 pub enum EfiStatus {
     Success = 0,
 }
+/*
+ * 0ってなんだ？？
+ * let t = EfiStatus::Sucess;
+ * のときにtはEfiStatus型の値だよね。0は何なの？？
+ * 「Success = 0」は「代入」ではない。Successという列挙子に識別値0を割り当てる。
+ * これがないとif status == EfiStatus::Success {...}のように書けない。
+ */
 
 #[repr(i64)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -114,11 +121,8 @@ impl EfiMemoryDescriptor {
 // スタックオーバーフロー対策のため、メモリマップのサイズを64KB固定
 const MEMORY_MAP_BUFFER_SIZE: usize = 0x10000;
 
-/*
- * 
- */
 pub struct MemoryMapHolder {
-    memory_map_buffer: [u8; MEMORY_MAP_BUFFER_SIZE], //メモリマップ本体。
+    memory_map_buffer: [u8; MEMORY_MAP_BUFFER_SIZE], //メモリマップ本体(EfiMemoryDescriptorが連続している)
     /*
      * ん？？このu8の羅列に物理アドレスが羅列して入っているって感じ？？それの何が意味あるの？？
      * u8の配列には以下のようなデータがはいっている。
@@ -132,10 +136,10 @@ pub struct MemoryMapHolder {
      * なんこになるかわからないから。
 ...
      */
-    memory_map_size: usize,
-    map_key: usize,
-    descriptor_size: usize,
-    descriptor_version: u32,
+    memory_map_size: usize, // メモリマップ全体のサイズ(バイト数)
+    map_key: usize, // ExitBootServicesで使うキー
+    descriptor_size: usize, // Descriptor１個のサイズ
+    descriptor_version: u32, // Descriptorのバージョン
 }
 impl MemoryMapHolder {
     pub const fn new() -> MemoryMapHolder {
@@ -204,10 +208,6 @@ pub struct EfiBootServicesTable {
      * Rustでは関数ポインタはlet f: fn(i32, i32) -> i32;のようにする。
      * extern "win64"は「この関数はWindows x64の呼び出し規約で呼び出す」という意味のお決まり文句。
      */
-    /*
-     * なんでEFIが用意した関数ポインタなのに返り値の型をEfiStatusっていうRustの構造体にできているの？？
-     * これも#[repr(C)]での変換がうまくいく
-     */
     _reserved2: [u64; 11],
     handle_protocol: extern "win64" fn(
         handle: EfiHandle,
@@ -225,6 +225,9 @@ pub struct EfiBootServicesTable {
         interface: *mut *mut EfiVoid,
     ) -> EfiStatus,
 }
+/*
+ * EFIのAPI経由でメモリマップを受け取っている
+ */
 /*
  * get_memory_map関数はEFIがメモリ上に用意してくれるAPIなのになんでこれを定義しているの？？オーバーライド？？
  * オーバライドではなく、関数ポインタが指す関数を呼び出しやすいようにしている。引数をmapだけですむようにした。
@@ -255,6 +258,13 @@ impl EfiBootServicesTable {
             &mut map.descriptor_size,
             &mut map.descriptor_version,
         )
+        /*
+         * あれ？？EfiStatusを返す処理が最後にないのはなぜ？？
+         * UEIFはget_memory_mapで「64ビット整数」を返しているだけで、
+         * Rustは#[repr(u64)] enum EfiStatusと宣言しているので、「この64ビット整数はEfiStatusとして扱ってよい」
+         * つまり成功したときはUEFIは0を返すということ。
+         * たとえばUEFIがEfiStatusに存在しない値を返した場合は、EfiStatusとして解釈できない。
+         */
     }
 }
 const _: () = assert!(offset_of!(EfiBootServicesTable, get_memory_map) == 56);
@@ -520,14 +530,16 @@ impl fmt::Write for VramTextWriter<'_> {
     }
 }
 
-/*
- * 
- */
 pub fn exit_from_efi_boot_services(
     image_handle: EfiHandle,
     efi_system_table: &EfiSystemTable,
     memory_map: &mut MemoryMapHolder,
 ) {
+    /*
+     * なぜループなの？？get_memory_mapとかは一回の実行で完結するはずだよね？？
+     * 失敗することがあるため。
+     * get_memory_mapで取得したmemory_mapがexit_boot_servicesを呼ぶ時点で、そのmap_keyが最新でないと失敗する。
+     */
     loop {
         let status = efi_system_table.boot_services.get_memory_map(memory_map);
         assert_eq!(status, EfiStatus::Success);
