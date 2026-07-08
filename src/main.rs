@@ -61,9 +61,14 @@ fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     error!("error");
     hexdump(efi_system_table);
     let mut vram = init_vram(efi_system_table).expect("init_vram failed");
+    /*
+     * expectってなに？？
+     * ResultやOptionの中身を取り出すメソッド
+     */
     let vm = vram.width();
     let vh = vram.height();
-    fill_rect(&mut vram, 0x000000, 0, 0, vm, vh).expect("fill_rect failed");
+    // 全画面を「黒」にする処理
+    fill_rect(&mut vram, 0x000000, 0, 0, vm, vh).expect("fill_rect failed"); //0x000000は黒
     draw_test_pattern(&mut vram);
     let mut w = VramTextWriter::new(&mut vram);
     let memory_map = init_basic_runtime(image_handle, efi_system_table);

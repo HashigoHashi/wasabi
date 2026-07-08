@@ -611,7 +611,7 @@ None
 [INFO]  src/x86.rs:824: Loading GDT @ 0x000000013FF7FE20
 [INFO]  src/x86.rs:831: Loading TSS ( selector = 0x18 )
 [INFO]  src/x86.rs:696: Loading IDT: IdtrParameters { limit: 4096, base: 0x13ff7ee00 }
-[INFO]  src/main.rs:96 : Exception initialized!
+[INFO]  src/main.rs:100: Exception initialized!
 [ERROR] src/x86.rs:519: Interrupt Info: 
         {
             rip: 0x00000000BE325695, CS: 0x0008,
@@ -624,14 +624,14 @@ None
             rax: 000000000000000000, rcs: 0000000000BFEA7E00,
             rdx: 0000000000BE3477D8, rbs: 0000000000BE4F3348,
             rsi: 0000000000BE632018, rdsi: 0000000000BE632018,
-            r8: 000000000000000001, r9: 000000000000000004,
-            r10: 0000000000BE357DA8, r11: 000000000000000001,
+            r8: 000000000000000001, r9: 0000000000BFEA7BAE,
+            r10: 0000000000BFEA7FB0, r11: 000000000000000001,
             r12: 000000000000000000, r13: 000000000000000000,
             r14: 0000000000BE4F3298, r15: 000000000000000005,
         }
 [ERROR] src/x86.rs:520: Exception 0x03: 
 [ERROR] src/x86.rs:523: Breakpoint
-[INFO]  src/main.rs:98 : Execution continued.
-[INFO]  src/main.rs:100: Now we are using our own page tables!
-[INFO]  src/main.rs:102: Reading from memory address 0...
-[INFO]  src/main.rs:107: value_at_zero = 0
+[INFO]  src/main.rs:102: Execution continued.
+[INFO]  src/main.rs:104: Now we are using our own page tables!
+[INFO]  src/main.rs:106: Reading from memory address 0...
+[INFO]  src/main.rs:111: value_at_zero = 0

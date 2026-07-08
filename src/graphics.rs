@@ -11,6 +11,9 @@ pub trait Bitmap {
     ///
     /// Returned pointer is valid as long as the given coorinates are valid
     /// which means that passing is_in_*_range tests.
+    /*
+     * (x, y)で与えられた位置座標の画素をメモリアドレスに変換する関数
+     */
     unsafe fn unchecked_pixel_at_mut(&mut self, x: i64, y: i64) -> *mut u32 {
         self.buf_mut().add(
             ((y * self.pixels_per_line() + x) * self.bytes_per_pixel())
@@ -37,12 +40,16 @@ pub trait Bitmap {
 ///
 /// (x, y) must be a valid point in the buf.
 unsafe fn unchecked_draw_point<T: Bitmap>(
+    /*
+     * これってBitmapを実装している構造体を引数に取れるよね？？
+     * その理解であっています！
+     */
     buf: &mut T,
     color: u32,
     x: i64,
     y: i64,
 ) {
-    *buf.unchecked_pixel_at_mut(x, y) = color;
+    *buf.unchecked_pixel_at_mut(x, y) = color; //座標のメモリアドレスをデリファレンスして、色のデータを書き込んでいる。
 }
 
 fn draw_point<T: Bitmap>(
@@ -58,6 +65,12 @@ fn draw_point<T: Bitmap>(
 pub fn fill_rect<T: Bitmap>(
     buf: &mut T,
     color: u32,
+    /*
+     * 0x000000は8バイトなのになぜu32？？これは32ビット、つまり4バイトだよね？？
+     * 4バイト分に補われている。一般的に色をあらわすのが24ビットというだけ。
+     * 「赤」の場合、0XFF0000だけど、実際は0X00FF0000としてメモリやレジスタに保持される。
+     * u32の理由は1画素が32ビットだから
+     */
     px: i64,
     py: i64,
     w: i64,
@@ -180,7 +193,7 @@ pub fn draw_str_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, s: &str) 
 pub fn draw_test_pattern<T: Bitmap>(buf: &mut T) {
     let w = 128;
     let left = buf.width() - w - 1;
-    let colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff];
+    let colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff]; // [黒, 赤, 緑, 青]
     let h = 64;
     for (i, c) in colors.iter().enumerate() {
         let y = i as i64 * h;

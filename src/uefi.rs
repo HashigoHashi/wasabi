@@ -311,11 +311,25 @@ impl EfiSystemTable {
 #[derive(Debug)]
 struct EfiGraphicsOutputProtocolPixelInfo {
     version: u32,
-    pub horizontal_resolution: u32,
-    pub vertical_resolution: u32,
+    pub horizontal_resolution: u32,  // 水平方向の画素数
+    pub vertical_resolution: u32,    // 垂直方向の画素数
     _padding0: [u32; 5],
-    pub pixels_per_scan_line: u32,
+    pub pixels_per_scan_line: u32,   // 水平方向のデータに含まれる画素数。フレームバッファの一行あたりの画素数
 }
+/*
+ * 1画素って何？？
+ * 1画素＝4バイト(32ビット)です。
+ * 1920×1080なら
+ * horizontal_resolution = 1920
+ * vertical_resolution   = 1080
+ * なので
+ * 1920×1020 = 2,073,600画素
+ * あります。
+ * 2,073,600×4
+ * = 8,294,400バイト
+ * = 8MB
+ * のフレームバッファになる。
+ */
 const _: () = assert!(size_of::<EfiGraphicsOutputProtocolPixelInfo>() == 36);
 
 #[repr(C)]
@@ -325,8 +339,8 @@ struct EfiGraphicsOutputProtocolMode<'a> {
     pub mode:u32,
     pub info: &'a EfiGraphicsOutputProtocolPixelInfo,
     pub size_of_info: u64,
-    pub frame_buffer_base: usize,
-    pub frame_buffer_size: usize
+    pub frame_buffer_base: usize, // フレームバッファと呼ばれるメモリ領域の開始アドレス
+    pub frame_buffer_size: usize // フレームバッファと呼ばれるメモリ領域の大きさ
 }
 
 #[repr(C)]
@@ -335,6 +349,7 @@ struct EfiGraphicsOutputProtocol<'a> {
     _reserved: [u64; 3],
     pub mode: &'a EfiGraphicsOutputProtocolMode<'a>,
 }
+
 /*
  * 'aってやつはライフタイムパラメータってやつだよね。これって何がしたいの？？
  * 普通は引数の中のデータの参照を返すから、引数と同じライフタイムを返す感じじゃないの？？
@@ -361,11 +376,11 @@ fn locate_graphic_protocol<'a>(
     let mut graphic_output_protocol: *mut EfiGraphicsOutputProtocol<'_> = null_mut::<EfiGraphicsOutputProtocol>();
     /*
      * *mut 型名ってなに？？&mut 型名ならしっているけど、
-     * 生ポインタ
+     *「生ポインタ」
      * *mut T
      * 安全保障なし。unsafe必要。Cと同じ。
      * 
-     * 参照
+     *「参照」
      * &mut T
      * 安全保障あり。unsafe不要。Rust独自。
      * <'_>ってなに？？
@@ -466,14 +481,17 @@ pub fn locate_loaded_image_protocol(
     Ok(unsafe { &*graphic_output_protocol })
 }
 
+/*
+ * VRAMを表現する構造体
+ */
 #[derive(Clone, Copy)]
 pub struct VramBufferInfo {
-    buf: *mut u8,
+    buf: *mut u8, //フレームバッファの先頭アドレス
     width: i64,
     height: i64,
     pixels_per_line: i64,
 }
-impl Bitmap for VramBufferInfo {
+impl Bitmap for VramBufferInfo { //トレイトをインターフェースとしているのね。まとまりのある関数を実装したいときにいいね。
     fn bytes_per_pixel(&self) -> i64 {
         4
     }
