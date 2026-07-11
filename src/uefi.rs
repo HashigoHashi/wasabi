@@ -404,7 +404,7 @@ fn locate_graphic_protocol<'a>(
          * の初期化の場合は
          * p
           ┌────────────┐
-          │ 0x000000   │ ← ゴミ値（未初期化）
+          │ 0x000000   │ ← 初期化済み
           └────────────┘
          * となる。こうすることでUEFIがNULLだった場所に有効なアドレスを書き込んでくれる。
          * ちなみにRustでは未初期化変数をつかうことをコンパイラが禁止している
@@ -510,9 +510,14 @@ impl Bitmap for VramBufferInfo { //トレイトをインターフェースとし
 }
 
 pub fn init_vram(efi_system_table: &EfiSystemTable) -> Result<VramBufferInfo> {
-    let gp = locate_graphic_protocol(efi_system_table)?;
+    let gp: &EfiGraphicsOutputProtocol<'_> = locate_graphic_protocol(efi_system_table)?;
     Ok(VramBufferInfo {
         buf: gp.mode.frame_buffer_base as *mut u8,
+        /*
+         * ここのframe_buffer_baseってどうなっているの。。キャストする前はusize何じゃないの？？
+         * usizeの「値」としてあったframe_buffer_baseを「ポインタ」とみなした。
+         * もともとframe_buffer_baseは0x000010000のような値が入っているけど、それをポインタとみなしている。
+         */
         width: gp.mode.info.horizontal_resolution as i64,
         height: gp.mode.info.vertical_resolution as i64,
         pixels_per_line: gp.mode.info.pixels_per_scan_line as i64,

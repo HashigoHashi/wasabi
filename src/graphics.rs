@@ -19,6 +19,11 @@ pub trait Bitmap {
             ((y * self.pixels_per_line() + x) * self.bytes_per_pixel())
                 as usize,
         ) as *mut u32
+        /*
+         * なんでu32にキャストしているの？？できるの？？
+         * できる。ただそのアドレスにu32が格納されていることを保証する必要はある。
+         * 0xffffffのような内容をいれるからu32は入る。(0x00ffffff)
+         */
     }
     fn pixel_at_mut(&mut self, x: i64, y: i64) -> Option<&mut u32> {
         if self.is_in_x_range(x) && self.is_in_y_range(y) {
@@ -120,12 +125,23 @@ fn draw_line<T: Bitmap>(
     {
         return Err("Out of Range");
     }
-    let dx = (x1 - x0).abs();
-    let sx = (x1 - x0).signum();
+    let dx = (x1 - x0).abs(); //絶対値を返す
+    let sx = (x1 - x0).signum(); //符号を返す。
     let dy = (y1 - y0).abs();
     let sy = (y1 - y0).signum();
     if dx >= dy {
         for (rx, ry) in (0..dx).flat_map(|rx| calc_slope_point(dx, dy, rx).map(|ry| (rx, ry)))
+        /*
+         * このfor文が複雑。
+         * (0..dx).flat_map(|rx| ..)で
+         * dx = 5なら、0,1,2,3,4を順番にrxに渡す。
+         * flat_mapのなかではcalc_slope_pointの結果をmapのryに渡す。
+         * mapとflat_mapってなに？？
+         * mapは「新しい値を生成する」(もとの値の型から別の型の値も作れる)
+         * rx =1 のときにcalc_slope_pointの結果がSome(4)だったとき、Some(4).map(|ry| (rx, ry))の結果はSome((1, 4))となり、
+         * 型もi64→タプルに変換されている。
+         * flat_mapはOptionの中身をとりだしてくれる。Some((1, 4))→(1, 4)
+         */
         {
             draw_point(buf, color, x0 + rx * sx, y0 + ry * sy)?;
         }
@@ -190,15 +206,36 @@ pub fn draw_str_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, s: &str) 
     }
 }
 
-pub fn draw_test_pattern<T: Bitmap>(buf: &mut T) {
+pub fn draw_test_pattern<T: Bitmap>(buf: &mut T) { // Bitmapを実装している型Tなら引数に取れる関数にしている
     let w = 128;
     let left = buf.width() - w - 1;
+    /*
+     * なぜ-1をしているの？？
+     * 一番右の列の画素をあけているだけです
+     */
     let colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff]; // [黒, 赤, 緑, 青]
     let h = 64;
     for (i, c) in colors.iter().enumerate() {
         let y = i as i64 * h;
+        /*
+         * cは参照になるんだね？？.iter().enumerate()はなにをしているの？？
+         * iterは各要素への参照を返してくれる。
+         * for c in colors.iter() {...}とすると、
+         * &0x000000
+         * &0xff0000
+         * &0x00ff00
+         * &0x0000ff
+         * だけが順番でかえされる。
+         * enumerateをすると「何番目の要素か」も一緒に返してくれる
+         * タプルになって、
+         * (0, &0x000000)
+         * (1, &0xff0000)
+         * (2, &0x00ff00)
+         * (3, &0x0000ff)
+         * となる。
+         */
         fill_rect(buf, *c, left, y, h, h).expect("fill_rect failed");
-        fill_rect(buf, !*c, left + h, y, h, h).expect("fill_rect failed");
+        fill_rect(buf, !*c, left + h, y, h, h).expect("fill_rect failed"); // [白, 水色, 紫, 黄色]
     }
     let points = [(0, 0), (0, w), (w, 0), (w, w)];
     for (x0, y0) in points.iter() {
