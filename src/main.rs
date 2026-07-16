@@ -64,6 +64,8 @@ fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
     /*
      * expectってなに？？
      * ResultやOptionの中身を取り出すメソッド
+     * これってcontextやwith_contextとなにがちがうの？？
+     * expectはpanicする。contextはしないでreturn Errする。
      */
     let vm = vram.width();
     let vh = vram.height();

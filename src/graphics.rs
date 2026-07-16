@@ -71,15 +71,15 @@ pub fn fill_rect<T: Bitmap>(
     buf: &mut T,
     color: u32,
     /*
-     * 0x000000は8バイトなのになぜu32？？これは32ビット、つまり4バイトだよね？？
+     * 0x000000は3バイトなのになぜu32？？これは32ビット、つまり4バイトだよね？？
      * 4バイト分に補われている。一般的に色をあらわすのが24ビットというだけ。
      * 「赤」の場合、0XFF0000だけど、実際は0X00FF0000としてメモリやレジスタに保持される。
      * u32の理由は1画素が32ビットだから
      */
-    px: i64,
-    py: i64,
-    w: i64,
-    h: i64,
+    px: i64, // x軸始点
+    py: i64, // y軸始点
+    w: i64,  // x軸終点までの幅
+    h: i64,  // y軸終点までの幅
 ) -> Result<()> {
     if !buf.is_in_x_range(px)
         || !buf.is_in_y_range(py)
@@ -113,11 +113,16 @@ fn calc_slope_point(da: i64, db: i64, ia: i64) -> Option<i64> {
 fn draw_line<T: Bitmap>(
     buf: &mut T,
     color: u32,
-    x0: i64,
-    y0: i64,
-    x1: i64,
-    y1: i64,
+    x0: i64, // x軸始点
+    y0: i64, // y軸始点
+    x1: i64, // x軸終点
+    y1: i64, // y軸終点
 ) -> Result<()> {
+    /*
+     * これってユニット型とか言うんだっけ？？
+     * はい、そうです。この関数の目的は四角形を描画すること、
+     * 「成功したか」「失敗したか」だけを返せばいいのでこうなっている。
+     */
     if !buf.is_in_x_range(x0)
         || !buf.is_in_x_range(x1)
         || !buf.is_in_y_range(y0)
@@ -157,7 +162,19 @@ fn draw_line<T: Bitmap>(
 fn lookup_font(c: char) -> Option<[[char; 8]; 16]> {
     const FONT_SOURCE: &str = include_str!("./font.txt");
     static mut FONT_CACHE: Option<[[[char; 8]; 16]; 256]> = None;
-    if let Ok(c) = u8::try_from(c) {
+    /*
+     * 256ってなに？？一文字は8×16の[[cahr; 8];16]で表せるよね？？
+     * そのとおりです。これは256文字をあらわすものにします
+     * FONT_CACHE[0]
+     * FONT_CACHE[1]
+     * ...
+     * FONT_CACHE[65] ← 'A'
+     * FONT_CACHE[66] ← 'B'
+     * FONT_CACHE[67] ← 'C'
+     * ...
+     * FONT_CACHE[255]
+     */
+    if let Ok(c) = u8::try_from(c) { // cがAとかのとき、try_from("A")→ c : 0x41
         let font = unsafe {
             FONT_CACHE.get_or_insert_with(|| {
                 let mut font = [[['*'; 8]; 16]; 256];
@@ -207,16 +224,16 @@ pub fn draw_str_fg<T: Bitmap>(buf: &mut T, x: i64, y: i64, color: u32, s: &str) 
 }
 
 pub fn draw_test_pattern<T: Bitmap>(buf: &mut T) { // Bitmapを実装している型Tなら引数に取れる関数にしている
-    let w = 128;
-    let left = buf.width() - w - 1;
+    let w = 128; // 図形の横幅
+    let left = buf.width() - w - 1; // 図形を描くx座標
     /*
      * なぜ-1をしているの？？
      * 一番右の列の画素をあけているだけです
      */
     let colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff]; // [黒, 赤, 緑, 青]
-    let h = 64;
+    let h = 64; // 図形の縦幅
     for (i, c) in colors.iter().enumerate() {
-        let y = i as i64 * h;
+        let y = i as i64 * h; // 図形を書くy座標
         /*
          * cは参照になるんだね？？.iter().enumerate()はなにをしているの？？
          * iterは各要素への参照を返してくれる。
@@ -241,6 +258,11 @@ pub fn draw_test_pattern<T: Bitmap>(buf: &mut T) { // Bitmapを実装してい�
     for (x0, y0) in points.iter() {
         for (x1, y1) in points.iter() {
             let _ = draw_line(buf, 0xffffff, left + *x0, *y0, left + *x1, *y1);
+            /*
+             * 返り値を使わないからこのような受け方をしているのは理解している。ではdraw_lineで何も返さなければいいのでは？？
+             * いい疑問。ただdraw_lineはErrを返せるように設計しているというだけ。
+             * let _ = draw_line()?;とすればdraw_lineのErrを呼び出し元であるこの関数内でreturnすることもできる。
+             */
         }
     }
     draw_str_fg(buf, left, h * colors.len() as i64, 0x00ff00, "0123456789");
