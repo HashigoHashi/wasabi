@@ -215,9 +215,7 @@ pub struct EfiBootServicesTable {
         interface: *mut *mut EfiVoid,
     ) -> EfiStatus,
     _reserved1: [u64; 9],
-    exit_boot_services:
-        extern "win64" fn(image_handle: EfiHandle, map_key: usize) -> EfiStatus,
-
+    exit_boot_services: extern "win64" fn(image_handle: EfiHandle, map_key: usize) -> EfiStatus,
     _reserved4: [u64; 10],
     locate_protocol: extern "win64" fn(
         protocol: *const EfiGuid,
