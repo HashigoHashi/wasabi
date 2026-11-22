@@ -194,10 +194,10 @@ pub struct EfiBootServicesTable {
         memory_map_size: *mut usize,
         /*
          * *ってなに？？ポインタ？？可変な参照という意味でいいのかな？？
-         * *mutはCのポインタと同じように捉えて良い。
-         * Rustでは&mut usizeという参照もあるがこれもおなじ参照である。しかしこちらはRustの安全なルールに従った参照である。
+         * これはRustの「生ポインタ」だね。*mutはCのポインタと同じように捉えて良い。
+         * Rustでは&mut usizeという参照もあるがこれもおなじ参照である。しかしこちらはRustの安全なルールに従った「可変な参照」である。
          */
-        memory_map: *mut u8,
+        memory_map: *mut u8, // メモリマップを格納する配列の先頭アドレスを渡す
         map_key: *mut usize,
         descriptor_size: *mut usize,
         descriptor_version: *mut u32,
