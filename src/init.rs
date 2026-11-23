@@ -18,7 +18,7 @@ pub fn init_basic_runtime(
     efi_system_table: &EfiSystemTable,
 ) -> MemoryMapHolder {
     /*
-     * 空のMemoryMapHolderを用意して、exit_from_efi_boot_services内のget_memory_map(memory_map)をしている。
+     * 空のMemoryMapHolderを用意して、exit_from_efi_boot_services内でget_memory_map(memory_map)をしている。
      */
     let mut memory_map = MemoryMapHolder::new();
     exit_from_efi_boot_services(

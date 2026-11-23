@@ -124,19 +124,43 @@ const MEMORY_MAP_BUFFER_SIZE: usize = 0x10000;
 pub struct MemoryMapHolder {
     memory_map_buffer: [u8; MEMORY_MAP_BUFFER_SIZE], //メモリマップ本体(EfiMemoryDescriptorが連続している)
     /*
-     * ん？？このu8の羅列に物理アドレスが羅列して入っているって感じ？？それの何が意味あるの？？
-     * u8の配列には以下のようなデータがはいっている。
-     * memory_map_buffer[0-39]：0x00000000 ～ 0x0009FFFF  CONVENTIONAL_MEMORY（使用可能）
-     * memory_map_buffer[40-79]：0x000A0000 ～ 0x000FFFFF  RESERVED
-     * memory_map_buffer[80-119]：0x00100000 ～ 0x03FFFFFF  BOOT_SERVICES_DATA
-     * memory_map_buffer[120-159]：0x04000000 ～ 0x1FFFFFFF  CONVENTIONAL_MEMORY（使用可能）
-     * memory_map_buffer[160-199]：0x20000000 ～ 0x20FFFFFF  ACPI_RECLAIM_MEMORY
-     * これはEfiMemoryDescriptorの内容をそのまま広げたものである。
-     * ではなぜ[EfiMemoryDescriptor; MEMORY_MAP_BUFFER_SIZE]にしないの？？
-     * なんこになるかわからないから。
-...
+     * ん？？このu8の羅列に物理アドレスが羅列して入っているって感じ？？
+     * イメージは正しいですが、少し違います。
+     * ここにはEfiMemoryDescriptorの内容がu8の単位で区切って広げられた状態で書き込まれます。
+     * 以下の例だと、ディスクリプタのサイズが40バイトだとして、
+     * 0x0000
+        ┌──────────────────────────────┐
+        │ Descriptor #0                │
+        │                              │
+        │  Type        : 7             │
+        │  PhysicalStart: 0x00000000  │
+        │  VirtualStart : 0x00000000  │
+        │  NumPages     : 0xA0         │
+        │  Attribute    : ...          │
+        └──────────────────────────────┘
+        0x0028  ← 40 bytes
+     * 上記のようなデータは以下のように広げられている。
+     * index   u8
+        ────────────────
+        0      0x07
+        1      0x00
+        2      0x00
+        3      0x00        ← Type = 7（u32）
+
+        4      0x00
+        5      0x00
+        6      0x00
+        7      0x00
+        8      0x00
+        9      0x00
+        10     0x00
+        11     0x00        ← PhysicalStart = 0x0000000000000000（u64）
+
+        12     ...
+        13     ...
+        14     ...
      */
-    memory_map_size: usize, // メモリマップ全体のサイズ(バイト数)
+    memory_map_size: usize, // メモリマップ全体のサイズ(バイト数)。MEMORY_MAP_BUFFER_SIZEと同じだね。
     map_key: usize, // ExitBootServicesで使うキー
     descriptor_size: usize, // Descriptor１個のサイズ
     descriptor_version: u32, // Descriptorのバージョン
@@ -147,6 +171,11 @@ impl MemoryMapHolder {
             memory_map_buffer: [0; MEMORY_MAP_BUFFER_SIZE],
             memory_map_size: MEMORY_MAP_BUFFER_SIZE,
             map_key: 0,
+            /*
+             * get_memory_map実行時にUEFIが可変な参照から書き込んでくれるディスクリプタのサイズ
+             * memory_map_bufferをどの単位に区切ればいいか教えてくれる。
+             * ので0で初期化をしている。
+             */
             descriptor_size: 0,
             descriptor_version: 0,
         }
@@ -155,12 +184,16 @@ impl MemoryMapHolder {
         MemoryMapIterator { map: self, ofs: 0 }
     }
 }
+/*
+ * ん？？以下のメソッドいらないかも？？
+ */
 impl Default for MemoryMapHolder {
     fn default() -> Self {
         Self::new()
     }
 }
 
+// MemoryMapIteratorはMemoryMapHolderより「長生きしてはいけない」という戒め
 pub struct MemoryMapIterator<'a> {
     map: &'a MemoryMapHolder,
     ofs: usize,
