@@ -291,7 +291,7 @@ impl EfiBootServicesTable {
         )
         /*
          * あれ？？EfiStatusを返す処理が最後にないのはなぜ？？
-         * UEIFはget_memory_mapで「64ビット整数」を返しているだけで、
+         * UEFIはget_memory_mapで「64ビット整数」を返しているだけで、
          * Rustは#[repr(u64)] enum EfiStatusと宣言しているので、「この64ビット整数はEfiStatusとして扱ってよい」
          * つまり成功したときはUEFIは0を返すということ。
          * たとえばUEFIがEfiStatusに存在しない値を返した場合は、EfiStatusとして解釈できない。
@@ -336,6 +336,10 @@ impl EfiSystemTable {
     pub fn boot_services(&self) -> &EfiBootServicesTable {
         self.boot_services
     }
+    /*
+     * なんでこれわざわざ関数化したの？？efisystemtable.boot_servicesでも呼び出せないの？？
+     * 
+     */
 }
 
 #[repr(C)]
@@ -569,16 +573,28 @@ impl<'a> VramTextWriter<'a> {
         }
     }
 }
+/*
+ * なんでwrite_strメソッドを実装しているの？？
+ * writelnマクロの第一引数に渡したときにマクロは第一引数のWriteトレイトのwrite_strメソッドを呼ぶから実装している。
+ */
 impl fmt::Write for VramTextWriter<'_> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for c in s.chars() {
             if c == '\n' {
                 self.cursor_y += 16;
                 self.cursor_x = 0;
+                /*
+                 * なんで改行だと16加えるの？？
+                 * 一文字の高さは16ピクセルだから
+                 */
                 continue;
             }
             draw_font_fg(self.vram, self.cursor_x, self.cursor_y, 0xffffff, c);
             self.cursor_x += 8;
+            /*
+             * なんで次の文字は8くわえるの？？
+             * 一文字の幅は8ピクセルだから
+             */
         }
         Ok(())
     }

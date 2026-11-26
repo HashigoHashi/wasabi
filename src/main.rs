@@ -65,7 +65,7 @@ fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
      * expectってなに？？
      * ResultやOptionの中身を取り出すメソッド
      * これってcontextやwith_contextとなにがちがうの？？
-     * expectはpanicする。contextはしないでreturn Errする。
+     * Errの場合、expectはpanicする。contextはしないでreturn Errする。
      */
     let vm = vram.width();
     let vh = vram.height();
@@ -81,6 +81,10 @@ fn efi_main(image_handle: EfiHandle, efi_system_table: &EfiSystemTable) {
         }
         total_memory_pages += e.number_of_pages();
         writeln!(w, "{e:?}").unwrap();
+        /*
+         * なんでここunwrap()しているの？？Errが帰った場合はどうなるの？？panicする？？
+         * はい、Errが返ってきたらpanicします。expectと違って、決まり文句のpanicメッセージが返る。
+         */
     }
     let total_memory_size_mib = total_memory_pages * 4096 / 1024 / 1024;
     writeln!(
