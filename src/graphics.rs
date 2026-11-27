@@ -28,6 +28,10 @@ pub trait Bitmap {
     fn pixel_at_mut(&mut self, x: i64, y: i64) -> Option<&mut u32> {
         if self.is_in_x_range(x) && self.is_in_y_range(y) {
             // SAFETY: (x, y) is always validated by the checks above.
+            /* 
+             * &mut *(...)のところ何をしている？？
+             * 生ポインタをデリファレンスしてからRustの可変な参照に戻している
+             */
             unsafe { Some(&mut *(self.unchecked_pixel_at_mut(x, y))) }
         } else {
             None

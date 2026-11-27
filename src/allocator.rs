@@ -43,6 +43,13 @@ fn round_up_to_nearest_pow2_tests() {
 
 struct Header {
     next_header: Option<Box<Header>>,
+    /*
+     * 直感的には&Headerかな？？と思ったんだけど、Option<&Header>ならわかるかもだけど、Boxって何？？
+     * かなりいい理解をしている。&HeaderとBox<Header>はどちらもポインタであるという点は同じ。
+     * Box<T>は「ヒープにあるTへのポインタ」という意味。
+     * &Headerだとポインタへの所有権がこの構造体にないので、所有権を保持するためにBoxを採用している。
+     * Option<T>にしているのはnext_headerが末尾の場合にNoneで表現するため。
+     */
     size: usize,
     is_allocated: bool,
     _reserved: usize,
